@@ -14,13 +14,15 @@ import morgan from 'morgan'
 import userrouter from './routes/user' 
 import mongoose from 'mongoose';
 
-
+//@ts-ignore
+import cors from 'cors'
 
 const app: Express = express();
 
 app.use(express.json());
 app.use(morgan('tiny'));
-app.use(cookieparser())
+app.use(cookieparser());
+app.use(cors())
 
 main().catch(err => console.log(err));
 
