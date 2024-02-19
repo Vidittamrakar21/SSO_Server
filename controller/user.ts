@@ -6,6 +6,8 @@ dotenv.config()
 import jwt from 'jsonwebtoken'
 //@ts-ignore
 import _ from 'lodash'
+//@ts-ignore
+import User from "../model/user"
 
 
 const userdata: Array<object> = [
@@ -13,6 +15,75 @@ const userdata: Array<object> = [
     {id: "ij1", email: 'junaid@gmail.com', pass: "5678"},
     
 ]
+
+const createuser = async (req: Request, res: Response)=>{
+    try {
+
+    const data = req.body;
+
+    //@ts-ignore
+    const {email, name} = data;
+
+    if(!(email && name)){
+        res.sendStatus(200).json({message: "An unexpected error occured while logging in !"})
+    }
+    else{
+        const data = await User.find({email: email})
+        
+        if(data[0].email === email){
+            res.sendStatus(201).json(data);
+           
+        }
+        else{
+            
+            
+            const token = jwt.sign( {email: email, name: name}, process.env.SECKEY,
+                {
+                    expiresIn : "65h"
+                }
+
+            )
+
+            if(token){
+                const user = await User.create({email: email , name: name, token: token})
+                res.sendStatus(201).json(user);
+            }
+        }
+       
+    }
+        
+    } catch (error) {
+        res.json(error)
+    }
+}
+
+
+const finduser = async (req: Request, res: Response)=>{
+    try {
+        const {token} = req.body;
+
+        if(token){
+            const isverified = await jwt.verify(token, process.env.SECKEY);
+            console.log("verify:",isverified);
+            if(isverified){
+                const data  = await User.findOne({email: isverified.email});
+                res.sendStatus(200).json({message: "Signed In successfully!" , data});
+            }
+            else{
+                res.sendStatus(200).json({message: "An unexpected error occured while signing in user"});
+            }
+
+        }
+
+        else{
+            res.json({message: "no token found"})
+        }
+        
+    } catch (error) {
+        res.json(error)
+    }
+}
+
 
 const createaccess = async (req: Request, res: Response)=>{
     try {
@@ -56,14 +127,14 @@ const createaccess = async (req: Request, res: Response)=>{
 
         else{
             //@ts-ignore
-        res.status(401).json({message: "Invalid email or password"})
+        res.sendStatus(401).json({message: "Invalid email or password"})
 
         }
         
         
     } catch (error) {
         //@ts-ignore
-        res.status(401).json({message: "Error occured while loggin in.", error})
+        res.sendStatus(401).json({message: "Error occured while loggin in.", error})
         console.log(error)
     }
 }
@@ -99,7 +170,7 @@ const createsession = async (req: Request, res: Response )=>{
 
         else{
             //@ts-ignore
-          res.status(401).json({message: "cannot able to verify token"})
+          res.sendStatus(401).json({message: "cannot able to verify token"})
 
            }
       
@@ -131,4 +202,4 @@ const createsession = async (req: Request, res: Response )=>{
 }
 
 
-module.exports = {createaccess, createsession};
+module.exports = {createaccess, createsession , createuser , finduser};

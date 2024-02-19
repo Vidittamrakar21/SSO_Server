@@ -12,7 +12,7 @@ import morgan from 'morgan'
 
 //@ts-ignore
 import userrouter from './routes/user' 
-import { access } from 'fs';
+import mongoose from 'mongoose';
 
 
 
@@ -21,6 +21,13 @@ const app: Express = express();
 app.use(express.json());
 app.use(morgan('tiny'));
 app.use(cookieparser())
+
+main().catch(err => console.log(err));
+
+async function main() {
+    await mongoose.connect(`mongodb+srv://vidit:${process.env.db_pass}@cluster0.7dlepcd.mongodb.net/?retryWrites=true&w=majority`);
+    console.log("Database Connected");
+  }
 
 const check = async (req:Request,res: Response, next: NextFunction)=>{
 
